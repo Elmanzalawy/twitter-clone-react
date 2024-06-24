@@ -5,11 +5,16 @@ import EvilIcons from '@expo/vector-icons/EvilIcons';
 import { Entypo } from '@expo/vector-icons';
 
 
-export default function TweetScreen() {
+export default function TweetScreen({ navigation }) {
+
+    function goToProfile() {
+        navigation.navigate('Profile Screen');
+    }
+
     return (
         <View style={styles.container}>
             <View style={styles.profileContainer}>
-                <TouchableOpacity style={styles.flexRow}>
+                <TouchableOpacity style={styles.flexRow} onPress={() => goToProfile()}>
                     <Image
                         style={styles.avatar}
                         source={{

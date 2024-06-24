@@ -24,7 +24,6 @@ const HomeStackNavigator = () => {
       headerShown: true,
       headerBackTitleVisible: false,
     }}>
-      {/* <Stack.Screen name='Home1' component={HomeScreen} /> */}
       <Stack.Screen name='Tab' component={TabNavigator} options={{ headerShown: false}} />
       <Stack.Screen name='New Tweet' component={NewTweetScreen} options={{ title: ''}} />
       <Stack.Screen name='Tweet Screen' component={TweetScreen} options={{ title: ''}} />
