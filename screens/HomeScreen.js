@@ -1,37 +1,29 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { View, Text, StyleSheet, Image, TouchableOpacity, Platform } from "react-native";
 import { FlatList } from "react-native-gesture-handler";
 import EvilIcons from '@expo/vector-icons/EvilIcons';
 import AntDesign from '@expo/vector-icons/AntDesign';
+import axios from 'axios';
+import { formatDistanceToNowStrict } from "date-fns";
+import locale from 'date-fns/locale/en-US';
+import formatDistance from "../scripts/formatDateTime";
 
 export default function HomeScreen({ navigation }) {
 
-    const DATA = [
-        {
-            id: 'bd7acbea-c1b1-46c2-aed5-3ad53abb28ba',
-            title: 'First Item',
-        },
-        {
-            id: '3ac68afc-c605-48d3-a4f8-fbd91aa97f63',
-            title: 'Second Item',
-        },
-        {
-            id: '58694a0f-3da1-471f-bd96-145571e29d72',
-            title: 'Third Item',
-        },
-        {
-            id: 'bd7acbea-c1b1-46c2-aed5-3ad53abb28ba3',
-            title: 'Fourth Item',
-        },
-        {
-            id: '3ac68afc-c605-48d3-a4f8-fbd91aa97f632',
-            title: 'Fifth Item',
-        },
-        {
-            id: '58694a0f-3da1-471f-bd96-145571e29d721',
-            title: 'Sixth Item',
-        },
-    ];
+    const [data, setData] = useState([]);
+    useEffect(() => {
+        getAllTweets();
+    }, []);
+
+    function getAllTweets() {
+        axios.get('https://troll-arriving-vertically.ngrok-free.app/api/tweets')
+            .then(response => {
+                setData(response.data)
+            })
+            .catch(error => {
+                console.error(error)
+            })
+    }
 
     function goToProfile() {
         navigation.navigate('Profile Screen');
@@ -45,27 +37,32 @@ export default function HomeScreen({ navigation }) {
         navigation.navigate('New Tweet');
     }
 
-    const renderItem = ({ item }) => (
+    const renderTweet = ({ item: tweet }) => (
         <View style={styles.tweetContainer}>
             <TouchableOpacity onPress={() => goToProfile()}>
                 <Image
                     style={styles.avatar}
                     source={{
-                        uri: 'https://reactnative.dev/img/tiny_logo.png'
+                        uri: tweet.user.avatar
                     }}
                 />
             </TouchableOpacity>
             <View style={{ flex: 1 }}>
                 <TouchableOpacity style={styles.flexRow} onPress={() => goToTweet()}>
-                    <Text numberOfLines={1} style={styles.tweetName}>{item.title}</Text>
-                    <Text numberOfLines={1} style={styles.tweetHandle}>@m.elmanzalawy</Text>
+                    <Text numberOfLines={1} style={styles.tweetName}>{tweet.user.name}</Text>
+                    <Text numberOfLines={1} style={styles.tweetHandle}>@{tweet.user.username}</Text>
                     <Text>&middot;</Text>
-                    <Text numberOfLines={1} style={styles.tweetHandle}>9m</Text>
+                    <Text numberOfLines={1} style={styles.tweetHandle}>{formatDistanceToNowStrict(new Date(tweet.created_at), {
+                        locale: {
+                            ...locale,
+                            formatDistance,
+                        }
+                    })}</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity style={styles.tweetContentContainer} onPress={() => goToTweet()}>
                     <Text style={styles.tweetContent}>
-                        Lorem ipsum dolor sit amet consectetur, adipisicing elit. Iste aspernatur facere ullam, quisquam error atque quam corporis quae possimus corrupti.
+                        {tweet.body}
                     </Text>
                 </TouchableOpacity>
 
@@ -76,7 +73,7 @@ export default function HomeScreen({ navigation }) {
                     </TouchableOpacity>
                     <TouchableOpacity style={[styles.flexRow, styles.ml4]}>
                         <EvilIcons name="retweet" size={22} color="gray" style={{ marginRight: 2 }} />
-                        <Text style={styles.textGray}>415</Text>
+                        <Text style={styles.textGray}>31</Text>
                     </TouchableOpacity>
                     <TouchableOpacity style={[styles.flexRow, styles.ml4]}>
                         <EvilIcons name="heart" size={22} color="gray" style={{ marginRight: 2 }} />
@@ -97,17 +94,17 @@ export default function HomeScreen({ navigation }) {
     return (
         <View style={styles.container}>
             <FlatList
-                data={DATA}
-                renderItem={renderItem}
-                keyExtractor={item => item.id}
+                data={data}
+                renderItem={renderTweet}
+                keyExtractor={tweet => tweet.id}
                 ItemSeparatorComponent={() => <View style={styles.tweetSeparator}></View>}
             />
 
-            <TouchableOpacity 
+            <TouchableOpacity
                 style={styles.floatingButton}
                 onPress={() => goToNewTweet()}
             >
-                <AntDesign name="plus" size={26} color="white"/>
+                <AntDesign name="plus" size={26} color="white" />
             </TouchableOpacity>
         </View>
     );
@@ -116,7 +113,6 @@ export default function HomeScreen({ navigation }) {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        // alignItems: 'center',
         justifyContent: 'center',
         backgroundColor: 'white',
     },
