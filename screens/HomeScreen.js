@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, StyleSheet, Image, TouchableOpacity, Platform } from "react-native";
-import { FlatList } from "react-native-gesture-handler";
+import { View, Text, StyleSheet, Image, TouchableOpacity, Platform, FlatList, ActivityIndicator, RefreshControl } from "react-native";
 import EvilIcons from '@expo/vector-icons/EvilIcons';
 import AntDesign from '@expo/vector-icons/AntDesign';
 import axios from 'axios';
@@ -11,6 +10,9 @@ import formatDistance from "../scripts/formatDateTime";
 export default function HomeScreen({ navigation }) {
 
     const [data, setData] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [isRefreshing, setIsRefreshing] = useState(false);
+
     useEffect(() => {
         getAllTweets();
     }, []);
@@ -23,6 +25,15 @@ export default function HomeScreen({ navigation }) {
             .catch(error => {
                 console.error(error)
             })
+            .finally(() => {
+                setIsLoading(false);
+                setIsRefreshing(false);
+            })
+    }
+
+    function handleRefresh() {
+        setIsRefreshing(true);
+        getAllTweets();
     }
 
     function goToProfile() {
@@ -37,7 +48,7 @@ export default function HomeScreen({ navigation }) {
         navigation.navigate('New Tweet');
     }
 
-    const renderTweet = ({ item: tweet }) => (
+    const renderItem = ({ item: tweet }) => (
         <View style={styles.tweetContainer}>
             <TouchableOpacity onPress={() => goToProfile()}>
                 <Image
@@ -93,16 +104,31 @@ export default function HomeScreen({ navigation }) {
 
     return (
         <View style={styles.container}>
-            <FlatList
+            {/* <FlatList
                 data={data}
-                renderItem={renderTweet}
-                keyExtractor={tweet => tweet.id}
-                ItemSeparatorComponent={() => <View style={styles.tweetSeparator}></View>}
-            />
-
+                renderItem={renderItem}
+                keyExtractor={item => item.id}
+                ItemSeparatorComponent={() => (
+                    <View style={styles.tweetSeparator}></View>
+                )}
+            /> */}
+            {isLoading ? (
+                <ActivityIndicator style={{ marginTop: 8 }} size="large" color="gray" />
+            ) : (
+                <FlatList
+                    data={data}
+                    renderItem={renderItem}
+                    keyExtractor={item => item.id.toString()}
+                    ItemSeparatorComponent={() => (
+                        <View style={styles.tweetSeparator}></View>
+                    )}
+                    refreshing={isRefreshing}
+                    onRefresh={handleRefresh}
+                />
+            )}
             <TouchableOpacity
                 style={styles.floatingButton}
-                onPress={() => goToNewTweet()}
+                onPress={() => gotoNewTweet()}
             >
                 <AntDesign name="plus" size={26} color="white" />
             </TouchableOpacity>
@@ -113,7 +139,6 @@ export default function HomeScreen({ navigation }) {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        justifyContent: 'center',
         backgroundColor: 'white',
     },
     flexRow: {
@@ -122,17 +147,17 @@ const styles = StyleSheet.create({
     tweetContainer: {
         flexDirection: 'row',
         paddingHorizontal: 12,
-        paddingVertical: 12
+        paddingVertical: 12,
     },
     tweetSeparator: {
         borderBottomWidth: 1,
-        borderBottomColor: '#e5e7eb'
+        borderBottomColor: '#e5e7eb',
     },
     avatar: {
         width: 42,
         height: 42,
         marginRight: 8,
-        borderRadius: 21
+        borderRadius: 21,
     },
     tweetName: {
         fontWeight: 'bold',
@@ -140,7 +165,7 @@ const styles = StyleSheet.create({
     },
     tweetHandle: {
         marginHorizontal: 8,
-        color: 'gray'
+        color: 'gray',
     },
     tweetContentContainer: {
         marginTop: 4,
@@ -149,15 +174,12 @@ const styles = StyleSheet.create({
         lineHeight: 20,
     },
     textGray: {
-        color: 'gray'
+        color: 'gray',
     },
     tweetEngagement: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginTop: 12
-    },
-    ml4: {
-        marginLeft: 16,
+        marginTop: 12,
     },
     floatingButton: {
         width: 60,
@@ -168,6 +190,9 @@ const styles = StyleSheet.create({
         backgroundColor: '#1d9bf1',
         position: 'absolute',
         bottom: 20,
-        right: 12
-    }
-})
+        right: 12,
+    },
+    ml4: {
+        marginLeft: 16,
+    },
+});
