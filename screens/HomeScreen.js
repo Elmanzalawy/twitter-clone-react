@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { View, Text, StyleSheet, Image, TouchableOpacity, Platform, FlatList, ActivityIndicator, RefreshControl } from "react-native";
 import EvilIcons from '@expo/vector-icons/EvilIcons';
 import AntDesign from '@expo/vector-icons/AntDesign';
-import axios from 'axios';
+import axiosCofig from '../config/axiosConfig';
 import { formatDistanceToNowStrict } from "date-fns";
 import locale from 'date-fns/locale/en-US';
 import formatDistance from "../scripts/formatDateTime";
@@ -21,7 +21,7 @@ export default function HomeScreen({ navigation }) {
     }, [page]); // when the 'page' variable is updated, call getAllTweets()
 
     function getAllTweets() {
-        axios.get(`https://troll-arriving-vertically.ngrok-free.app/api/tweets?page=${page}`)
+        axiosCofig.get(`/tweets?page=${page}`)
             .then(response => {
                 if (page == 1) {
                     setData(response.data.data)
@@ -57,8 +57,10 @@ export default function HomeScreen({ navigation }) {
         navigation.navigate('Profile Screen');
     }
 
-    function goToTweet() {
-        navigation.navigate('Tweet Screen');
+    function goToTweet(tweetId) {
+        navigation.navigate('Tweet Screen', {
+            tweetId: tweetId
+        });
     }
 
     function goToNewTweet() {
@@ -76,7 +78,7 @@ export default function HomeScreen({ navigation }) {
                 />
             </TouchableOpacity>
             <View style={{ flex: 1 }}>
-                <TouchableOpacity style={styles.flexRow} onPress={() => goToTweet()}>
+                <TouchableOpacity style={styles.flexRow} onPress={() => goToTweet(tweet.id)}>
                     <Text numberOfLines={1} style={styles.tweetName}>{tweet.user.name}</Text>
                     <Text numberOfLines={1} style={styles.tweetHandle}>@{tweet.user.username}</Text>
                     <Text>&middot;</Text>
@@ -88,7 +90,7 @@ export default function HomeScreen({ navigation }) {
                     })}</Text>
                 </TouchableOpacity>
 
-                <TouchableOpacity style={styles.tweetContentContainer} onPress={() => goToTweet()}>
+                <TouchableOpacity style={styles.tweetContentContainer} onPress={() => goToTweet(tweet.id)}>
                     <Text style={styles.tweetContent}>
                         {tweet.body}
                     </Text>
