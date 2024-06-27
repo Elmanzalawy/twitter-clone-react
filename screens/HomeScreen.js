@@ -12,15 +12,26 @@ export default function HomeScreen({ navigation }) {
     const [data, setData] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isRefreshing, setIsRefreshing] = useState(false);
+    const [page, setPage] = useState(1);
+    const [isAtEndOfScrolling, setIsAtEndOfScrolling] = useState(false);
 
+    // get all tweets when screen renders
     useEffect(() => {
         getAllTweets();
-    }, []);
+    }, [page]); // when the 'page' variable is updated, call getAllTweets()
 
     function getAllTweets() {
-        axios.get('https://troll-arriving-vertically.ngrok-free.app/api/tweets')
+        axios.get(`https://troll-arriving-vertically.ngrok-free.app/api/tweets?page=${page}`)
             .then(response => {
-                setData(response.data)
+                if (page == 1) {
+                    setData(response.data.data)
+                } else {
+                    setData([...data, ...response.data.data]) // append new data to existing data
+                }
+
+                if (!response.data.next_page_url) {
+                    setIsAtEndOfScrolling(true);
+                }
             })
             .catch(error => {
                 console.error(error)
@@ -32,8 +43,14 @@ export default function HomeScreen({ navigation }) {
     }
 
     function handleRefresh() {
+        setPage(1);
+        setIsAtEndOfScrolling(false);
         setIsRefreshing(true);
         getAllTweets();
+    }
+
+    function handleEnd() {
+        setPage(page + 1);
     }
 
     function goToProfile() {
@@ -104,14 +121,6 @@ export default function HomeScreen({ navigation }) {
 
     return (
         <View style={styles.container}>
-            {/* <FlatList
-                data={data}
-                renderItem={renderItem}
-                keyExtractor={item => item.id}
-                ItemSeparatorComponent={() => (
-                    <View style={styles.tweetSeparator}></View>
-                )}
-            /> */}
             {isLoading ? (
                 <ActivityIndicator style={{ marginTop: 8 }} size="large" color="gray" />
             ) : (
@@ -124,6 +133,9 @@ export default function HomeScreen({ navigation }) {
                     )}
                     refreshing={isRefreshing}
                     onRefresh={handleRefresh}
+                    onEndReached={handleEnd}
+                    onEndReachedThreshold={0}
+                    ListFooterComponent={() => !isAtEndOfScrolling && (<ActivityIndicator size="large" color="gray" />)}
                 />
             )}
             <TouchableOpacity
