@@ -1,27 +1,37 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { View, Text, StyleSheet, Image, TouchableOpacity, Platform, FlatList, ActivityIndicator, RefreshControl } from "react-native";
 import EvilIcons from '@expo/vector-icons/EvilIcons';
 import AntDesign from '@expo/vector-icons/AntDesign';
-import axiosCofig from '../config/axiosConfig';
+import axiosConfig from '../config/axiosConfig';
 import { formatDistanceToNowStrict } from "date-fns";
 import locale from 'date-fns/locale/en-US';
 import formatDistance from "../scripts/formatDateTime";
 
-export default function HomeScreen({ navigation }) {
+export default function HomeScreen({ route, navigation }) {
 
     const [data, setData] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [page, setPage] = useState(1);
     const [isAtEndOfScrolling, setIsAtEndOfScrolling] = useState(false);
+    const flatListRef = useRef();
+
+    useEffect(() => {
+        getAllTweets();
+    }, [page]);
 
     // get all tweets when screen renders
     useEffect(() => {
-        getAllTweets();
-    }, [page]); // when the 'page' variable is updated, call getAllTweets()
+        if (route.params?.newTweetAdded) {
+            getAllTweetsRefresh();
+            flatListRef.current.scrollToOffset({
+                offset: 0,
+            });
+        }
+    }, [route.params?.newTweetAdded]);
 
     function getAllTweets() {
-        axiosCofig.get(`/tweets?page=${page}`)
+        axiosConfig.get(`/tweets?page=${page}`)
             .then(response => {
                 if (page == 1) {
                     setData(response.data.data)
@@ -41,6 +51,27 @@ export default function HomeScreen({ navigation }) {
                 setIsRefreshing(false);
             })
     }
+
+
+    function getAllTweetsRefresh() {
+        setPage(1);
+        setIsAtEndOfScrolling(false);
+        setIsRefreshing(false);
+
+        axiosConfig
+            .get(`/tweets`)
+            .then(response => {
+                setData(response.data.data);
+                setIsLoading(false);
+                setIsRefreshing(false);
+            })
+            .catch(error => {
+                console.log(error);
+                setIsLoading(false);
+                setIsRefreshing(false);
+            });
+    }
+
 
     function handleRefresh() {
         setPage(1);
@@ -127,6 +158,7 @@ export default function HomeScreen({ navigation }) {
                 <ActivityIndicator style={{ marginTop: 8 }} size="large" color="gray" />
             ) : (
                 <FlatList
+                    ref={flatListRef}
                     data={data}
                     renderItem={renderItem}
                     keyExtractor={item => item.id.toString()}
@@ -142,7 +174,7 @@ export default function HomeScreen({ navigation }) {
             )}
             <TouchableOpacity
                 style={styles.floatingButton}
-                onPress={() => gotoNewTweet()}
+                onPress={() => goToNewTweet()}
             >
                 <AntDesign name="plus" size={26} color="white" />
             </TouchableOpacity>

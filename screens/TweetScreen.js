@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { View, Text, Image, StyleSheet, Platform, ActivityIndicator } from "react-native";
 import { TouchableOpacity } from "react-native-gesture-handler";
 import EvilIcons from '@expo/vector-icons/EvilIcons';
-import axiosCofig from '../config/axiosConfig';
+import axiosConfig from '../config/axiosConfig';
 import { Entypo } from '@expo/vector-icons';
 import { format } from "date-fns";
 
@@ -17,7 +17,7 @@ export default function TweetScreen({ route, navigation }) {
     }, []);
 
     function getTweet() {
-        axiosCofig.get(`/tweets/${route.params.tweetId}`)
+        axiosConfig.get(`/tweets/${route.params.tweetId}`)
             .then(response => {
                 setTweet(response.data)
                 setIsLoading(false)
