@@ -1,10 +1,111 @@
-import React from "react";
-import { View, Text, Image, StyleSheet, Linking } from "react-native";
+import React, { useEffect, useState } from "react";
+import { View, Text, Image, StyleSheet, Linking, ActivityIndicator } from "react-native";
 import { TouchableOpacity } from "react-native-gesture-handler";
 import { FlatList } from "react-native-gesture-handler";
 import EvilIcons from '@expo/vector-icons/EvilIcons';
+import axiosConfig from '../config/axiosConfig';
+import { format } from "date-fns";
 
-export default function ProfileScreen() {
+export default function ProfileScreen({ route, navigation }) {
+
+    useEffect(() => {
+        getUserProfile();
+    }, []);
+
+    const [user, setUser] = useState(null);
+    const [isLoading, setIsLoading] = useState(true);
+
+    function getUserProfile() {
+        axiosConfig.get(`/users/${route.params.userId}`)
+            .then(response => {
+                setUser(response.data)
+            })
+            .catch(error => {
+                console.log(error)
+            })
+            .finally(() => {
+                setIsLoading(false)
+            })
+    }
+
+    const renderItem = ({ item }) => (
+        <View style={{ marginVertical: 15 }}>
+            <Text>{item.title}</Text>
+        </View>
+    );
+    const ProfileHeader = () => (
+        <View style={styles.container}>
+            {isLoading ? (
+                <ActivityIndicator style={{ marginTop: 8 }} size="large" color="gray" />
+            ) : (
+                <>
+                    <Image
+                        style={styles.backgroundImage}
+                        source={{
+                            uri: 'https://images.unsplash.com/photo-1557683316-973673baf926?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1080&q=80',
+                        }}
+                    />
+                    <View style={styles.avatarContainer}>
+                        <Image
+                            style={styles.avatar}
+                            source={{
+                                uri: user.avatar,
+                            }}
+                        />
+                        <TouchableOpacity style={styles.followButton}>
+                            <Text style={styles.followButtonText}>Follow</Text>
+                        </TouchableOpacity>
+                    </View>
+
+                    <View style={styles.nameContainer}>
+                        <Text style={styles.profileName}>{user.name}</Text>
+                        <Text style={styles.profileHandle}>@{user.username}</Text>
+                    </View>
+
+                    <View style={styles.proifleContainer}>
+                        <Text style={styles.profileContainerText}>
+                            {user.bio}
+                        </Text>
+                    </View>
+
+                    <View style={styles.locationContainer}>
+                        <EvilIcons name="location" size={24} color="gray" />
+                        <Text style={styles.textGray}>{user.location}</Text>
+                    </View>
+
+                    <View style={styles.linkContainer}>
+                        <TouchableOpacity
+                            style={styles.linkItem}
+                            onPress={() => Linking.openURL(user.link)}
+                        >
+                            <EvilIcons name="link" size={24} color="gray" />
+                            <Text style={styles.linkColor}>{user.link_text}</Text>
+                        </TouchableOpacity>
+
+                        <View style={[styles.linkItem, styles.ml4]}>
+                            <EvilIcons name="calendar" size={25} color="gray" />
+                                <Text style={styles.textGray}>Joined {format(new Date(user.created_at), 'MMM yyyy')}</Text>
+                        </View>
+
+                    </View>
+
+                    <View style={styles.followContainer}>
+                        <View style={styles.followItem}>
+                            <Text style={styles.followItemNumber}>509</Text>
+                            <Text style={styles.followItemLabel}>Following</Text>
+                        </View>
+                        <View style={[styles.followItem, styles.ml4]}>
+                            <Text style={styles.followItemNumber}>2,315</Text>
+                            <Text style={styles.followItemLabel}>Followers</Text>
+                        </View>
+                    </View>
+
+                    <View style={styles.separator}></View>
+                </>
+            )}
+        </View>
+    );
+
     const DATA = [
         {
             id: 'bd7acbea-c1b1-46c2-aed5-3ad53abb28ba',
@@ -31,79 +132,6 @@ export default function ProfileScreen() {
             title: 'Sixth Item',
         },
     ];
-
-    const renderItem = ({ item }) => (
-        <View style={{ marginVertical: 15 }}>
-            <Text>{item.title}</Text>
-        </View>
-    );
-    const ProfileHeader = () => (
-        <View style={styles.container}>
-            <Image
-                style={styles.backgroundImage}
-                source={{
-                    uri: 'https://images.unsplash.com/photo-1557683316-973673baf926?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1080&q=80',
-                }}
-            />
-            <View style={styles.avatarContainer}>
-                <Image
-                    style={styles.avatar}
-                    source={{
-                        uri: 'https://reactnative.dev/img/tiny_logo.png'
-                    }}
-                />
-                <TouchableOpacity style={styles.followButton}>
-                    <Text style={styles.followButtonText}>Follow</Text>
-                </TouchableOpacity>
-            </View>
-
-            <View style={styles.nameContainer}>
-                <Text style={styles.profileName}>Mohamed Elmanzalawy</Text>
-                <Text style={styles.profileHandle}>@m.elmanzalawy</Text>
-            </View>
-
-            <View style={styles.proifleContainer}>
-                <Text style={styles.profileContainerText}>
-                    Full-stack Developer @ Super Be | Bachelor's in Engineering
-                </Text>
-            </View>
-
-            <View style={styles.locationContainer}>
-                <EvilIcons name="location" size={24} color="gray" />
-                <Text style={styles.textGray}>Port Said, Egypt</Text>
-            </View>
-
-            <View style={styles.linkContainer}>
-                <TouchableOpacity
-                    style={styles.linkItem}
-                    onPress={() => Linking.openURL('https://www.linkedin.com/in/mohamed-elmanzalawy/')}
-                >
-                    <EvilIcons name="link" size={24} color="gray" />
-                    <Text style={styles.linkColor}>LinkedIn</Text>
-                </TouchableOpacity>
-
-                <View style={[styles.linkItem, styles.ml4]}>
-                    <EvilIcons name="calendar" size={25} color="gray" />
-                    <Text style={styles.textGray}>Joined Jan 2024</Text>
-                </View>
-
-            </View>
-
-            <View style={styles.followContainer}>
-                <View style={styles.followItem}>
-                    <Text style={styles.followItemNumber}>509</Text>
-                    <Text style={styles.followItemLabel}>Following</Text>
-                </View>
-                <View style={[styles.followItem, styles.ml4]}>
-                    <Text style={styles.followItemNumber}>2,315</Text>
-                    <Text style={styles.followItemLabel}>Followers</Text>
-                </View>
-            </View>
-
-            <View style={styles.separator}></View>
-        </View>
-    );
-
 
     return (
         <FlatList

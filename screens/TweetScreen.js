@@ -28,8 +28,10 @@ export default function TweetScreen({ route, navigation }) {
             })
     }
 
-    function goToProfile() {
-        navigation.navigate('Profile Screen');
+    function goToProfile(userId) {
+        navigation.navigate('Profile Screen', {
+            userId
+        });
     }
 
     return (
@@ -39,7 +41,7 @@ export default function TweetScreen({ route, navigation }) {
             ) : (
                 <>
                     <View style={styles.profileContainer}>
-                        <TouchableOpacity style={styles.flexRow} onPress={() => goToProfile()}>
+                        <TouchableOpacity style={styles.flexRow} onPress={() => goToProfile(tweet.user.id)}>
                             <Image
                                 style={styles.avatar}
                                 source={{
